@@ -805,7 +805,7 @@ namespace boilersGraphics.ViewModels
                 ContextMenuItems.Add(new MenuItem()
                 {
                     Command = VectorImagingCommand,
-                    Header = "ベクター画像に変換"
+                    Header = "ベクターオブジェクトに変換"
                 });
             }
             var grouping = new MenuItem()
