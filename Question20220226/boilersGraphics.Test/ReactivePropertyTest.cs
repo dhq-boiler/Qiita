@@ -1,12 +1,17 @@
-﻿using boilersGraphics.Models;
+﻿using boilersGraphics.Extensions;
+using boilersGraphics.Models;
 using boilersGraphics.Properties;
 using boilersGraphics.ViewModels;
 using Moq;
 using NUnit.Framework;
+using Prism.Mvvm;
 using Prism.Services.Dialogs;
 using Reactive.Bindings;
+using Reactive.Bindings.Extensions;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
@@ -41,6 +46,72 @@ namespace boilersGraphics.Test
             diagramVM.SetSubscribes(false);
 
             Assert.That(diagramVM.AllItems.Value, Has.Member(item));
+        }
+
+        class TestClassB : BindableBase
+        {
+
+        }
+
+        class TestClass : BindableBase
+        {
+            public ReactivePropertySlim<ObservableCollection<TestClassB>> Children { get; set; } = new ReactivePropertySlim<ObservableCollection<TestClassB>>(new ObservableCollection<TestClassB>());
+
+            public ReadOnlyReactivePropertySlim<TestClassB[]> X { get; }
+
+            public TestClass()
+            {
+                X = this.ObserveProperty(x => x.Children.Value)
+                        .Select(_ => Children.Value.ToArray())
+                        .ToReadOnlyReactivePropertySlim(Array.Empty<TestClassB>());
+            }
+        }
+
+        [Test]
+        public void これは通る()
+        {
+            var testclassB = new TestClassB();
+            var testclass = new TestClass();
+            
+            Assert.That(testclass.X.Value, Has.No.Member(testclassB));
+
+            testclass.Children.Value = new ObservableCollection<TestClassB>() { testclassB };
+
+            Assert.That(testclass.X.Value, Has.Member(testclassB));
+        }
+
+        class TestClassC : BindableBase
+        {
+            public ReactiveCollection<LayerTreeViewItemBase> Layers { get; set; } = new ReactiveCollection<LayerTreeViewItemBase>();
+
+            public ReadOnlyReactivePropertySlim<SelectableDesignerItemViewModelBase[]> AllItems { get; set; }
+
+            public TestClassC()
+            {
+                AllItems = Layers.CollectionChangedAsObservable()
+                             .Select(_ => Layers.Select(x => x.LayerItemsChangedAsObservable()).Merge())
+                             .Switch()
+                             .Select(_ => Layers.SelectRecursive<LayerTreeViewItemBase, LayerTreeViewItemBase>(x => x.Children.Value)
+                                                .Where(x => x.GetType() == typeof(LayerItem))
+                                                .Select(y => (y as LayerItem).Item.Value)
+                                                .ToArray())
+                             .ToReadOnlyReactivePropertySlim(Array.Empty<SelectableDesignerItemViewModelBase>());
+            }
+        }
+
+        [Test]
+        public void これは何故か通らない()
+        {
+            boilersGraphics.App.IsTest = true;
+            var layerItem = new LayerItem(new NRectangleViewModel(), null, String.Empty);
+            var testclass = new TestClassC();
+            testclass.Layers.Add(new Layer(false));
+
+            Assert.That(testclass.AllItems.Value, Has.No.Member(layerItem));
+
+            testclass.Layers.First().Children.Value = new ObservableCollection<LayerTreeViewItemBase>() { layerItem };
+
+            Assert.That(testclass.AllItems.Value, Has.Member(layerItem));
         }
 
         [Test]
