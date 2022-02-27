@@ -34,18 +34,46 @@ namespace boilersGraphics.Test
             diagramVM.Layers.Add(layer1);
             layer1.IsSelected.Value = true; //レイヤー1を選択状態にする
 
-            diagramVM.DisposeProperties();
-            diagramVM.InitializeProperties_Layers(false);
+            //diagramVM.DisposeProperties();
+            //diagramVM.InitializeProperties_Layers(false);
             diagramVM.AddNewLayer(mainWindowViewModel, false);
-            var firstSelectedLayer = diagramVM.SelectedLayers.Value.First();
+            var firstSelectedLayer = layer1;
             var item = new NRectangleViewModel();
             var layerItem = new LayerItem(item, firstSelectedLayer, "TEST");
+            firstSelectedLayer.Children.Value.Add(layerItem);
             Assert.That(firstSelectedLayer.Name.Value, Is.EqualTo("レイヤー1"));
-            firstSelectedLayer.Children.Value = new System.Collections.ObjectModel.ObservableCollection<LayerTreeViewItemBase>(new LayerItem[] { layerItem });
-            diagramVM.InitializeProperties_Items(false);
-            diagramVM.SetSubscribes(false);
+            Assert.That(diagramVM.AllItems.Value, Has.Member(item));
+            firstSelectedLayer.Children.Value = new ObservableCollection<LayerTreeViewItemBase>(new LayerItem[] { layerItem });
+            //diagramVM.InitializeProperties_Items(false);
+            //diagramVM.SetSubscribes(false);
 
             Assert.That(diagramVM.AllItems.Value, Has.Member(item));
+        }
+
+        [Test]
+        public void これも通る()
+        {
+            boilersGraphics.App.IsTest = true;
+            var dlgService = new Mock<IDialogService>();
+            MainWindowViewModel mainWindowViewModel = new MainWindowViewModel(dlgService.Object);
+            var diagramVM = new DiagramViewModel(mainWindowViewModel, 1000, 1000);
+            diagramVM.Layers.Clear();
+            var layer1 = new Layer();
+            layer1.Name.Value = $"{Resources.Name_Layer}1";
+            diagramVM.Layers.Add(layer1);
+            layer1.IsSelected.Value = true; //レイヤー1を選択状態にする
+
+            var item = new NRectangleViewModel();
+            var layerItem = new LayerItem(item, layer1, "TEST");
+            layer1.Children.Value.Add(layerItem);
+            Assert.That(diagramVM.AllItems.Value, Has.Member(item));
+            var item2 = new NRectangleViewModel();
+            var layerItem2 = new LayerItem(item2, layer1, "TEST2");
+            layer1.Children.Value.Add(layerItem2);
+            diagramVM.RootLayer.Value.Children.Value = new ObservableCollection<LayerTreeViewItemBase>(new LayerItem[] { layerItem, layerItem2 });
+
+            Assert.That(diagramVM.AllItems.Value, Has.Member(item));
+            Assert.That(diagramVM.AllItems.Value, Has.Member(item2));
         }
 
         class TestClassB : BindableBase
@@ -100,18 +128,19 @@ namespace boilersGraphics.Test
         }
 
         [Test]
-        public void これは何故か通らない()
+        public void これも通る2()
         {
             boilersGraphics.App.IsTest = true;
-            var layerItem = new LayerItem(new NRectangleViewModel(), null, String.Empty);
+            var vm = new NRectangleViewModel();
+            var layerItem = new LayerItem(vm, null, String.Empty);
             var testclass = new TestClassC();
             testclass.Layers.Add(new Layer(false));
 
-            Assert.That(testclass.AllItems.Value, Has.No.Member(layerItem));
+            Assert.That(testclass.AllItems.Value, Has.No.Member(vm));
 
             testclass.Layers.First().Children.Value = new ObservableCollection<LayerTreeViewItemBase>() { layerItem };
 
-            Assert.That(testclass.AllItems.Value, Has.Member(layerItem));
+            Assert.That(testclass.AllItems.Value, Has.Member(vm));
         }
 
         [Test]

@@ -637,9 +637,10 @@ namespace boilersGraphics.ViewModels
                              .Switch()
                              .Do(_ => Debug.WriteLine(String.Concat("debug ", string.Join(", ", Layers.Select(x => x?.ToString() ?? "null")))))
                              .Select(_ => Layers.SelectRecursive<LayerTreeViewItemBase, LayerTreeViewItemBase>(x => x.Children.Value)
-                                                .Where(x => x.GetType() == typeof(LayerItem))
-                                                .Select(y => (y as LayerItem).Item.Value)
+                                                .OfType<LayerItem>()
+                                                .Select(y => y.Item.Value)
                                                 .Union(new SelectableDesignerItemViewModelBase[] { BackgroundItem.Value })
+                                                .Where(x => x != null)
                                                 .ToArray())
                              .ToReadOnlyReactivePropertySlim(Array.Empty<SelectableDesignerItemViewModelBase>());
         }
