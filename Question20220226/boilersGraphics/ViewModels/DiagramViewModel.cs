@@ -420,7 +420,6 @@ namespace boilersGraphics.ViewModels
                                             var contour = array[k];
                                             polyBezier.Points.Add(new Point(contour.X, contour.Y));
                                         }
-                                        //polyBezier.Points.AddRange(array.Select(p => new Point(p.X, p.Y)));
                                         polyBezier.EdgeBrush.Value = Brushes.Transparent;
                                         polyBezier.EdgeThickness.Value = 0;
                                         polyBezier.LeftTop.Value = new Point(polyBezier.Points.Select(x => x.X).Min() - polyBezier.Owner.EdgeThickness.Value.Value / 2, polyBezier.Points.Select(x => x.Y).Min() - polyBezier.Owner.EdgeThickness.Value.Value / 2);
@@ -455,13 +454,8 @@ namespace boilersGraphics.ViewModels
                             sw.Stop();
                             Debug.WriteLine($"added item. {sw.ElapsedMilliseconds}ms");
                         }
-                        DisposeProperties();
-                        InitializeProperties_Layers(isPreview);
-                        AddNewLayer(mainWindowViewModel, false);
                         var firstSelectedLayer = SelectedLayers.Value.First();
                         firstSelectedLayer.Children.Value = new ObservableCollection<LayerTreeViewItemBase>(l);
-                        InitializeProperties_Items(isPreview);
-                        SetSubscribes(false);
                     }
                 });
             }
@@ -1161,7 +1155,7 @@ namespace boilersGraphics.ViewModels
                 combine.Owner = this;
                 combine.ZIndex.Value = Layers.SelectMany(x => x.Children.Value).Count();
                 combine.IsHitTestVisible.Value = MainWindowVM.ToolBarViewModel.CurrentHitTestVisibleState.Value;
-                combine.PathGeometry.Value = GeometryCreator.CreateCombineGeometry(pb);
+                combine.PathGeometry.Value = GeometryCreator.CreateClosedCombineGeometry(pb);
                 combine.Left.Value = combine.PathGeometry.Value.Bounds.Left;
                 combine.Top.Value = combine.PathGeometry.Value.Bounds.Top;
                 combine.Width.Value = combine.PathGeometry.Value.Bounds.Width;

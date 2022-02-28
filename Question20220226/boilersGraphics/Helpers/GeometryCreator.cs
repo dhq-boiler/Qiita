@@ -84,6 +84,50 @@ namespace boilersGraphics.Helpers
             return geometry;
         }
 
+        public static PathGeometry CreateClosedCombineGeometry(PolyBezierViewModel pb)
+        {
+            Point oneIntersection;
+            int beginI = 0;
+            int endJ = 0;
+            DetectIntersections_Closed(pb, ref oneIntersection, ref beginI, ref endJ);
+
+            if (beginI > endJ)
+            {
+                Swap(ref beginI, ref endJ);
+            }
+
+            LogManager.GetCurrentClassLogger().Debug($"oneIntersection:{oneIntersection}");
+            LogManager.GetCurrentClassLogger().Debug($"beginI:{beginI}, endJ:{endJ}");
+
+            var segments = ExtractSegment(pb.Points, beginI + 1, endJ);
+            LogManager.GetCurrentClassLogger().Debug($"segments count:{segments.Count}");
+            if (segments.Count % 3 == 0)
+            {
+                var geometry = new StreamGeometry();
+                using (var ctx = geometry.Open())
+                {
+                    ctx.BeginFigure(oneIntersection, true, true);
+                    ctx.PolyBezierTo(segments, true, false);
+                }
+                geometry.Freeze();
+                return PathGeometry.CreateFromGeometry(geometry);
+            }
+            else
+            {
+                var geometry = new StreamGeometry();
+                using (var ctx = geometry.Open())
+                {
+                    ctx.BeginFigure(oneIntersection, true, true);
+                    foreach (var segment in segments)
+                    {
+                        ctx.LineTo(segment, true, false);
+                    }
+                }
+                geometry.Freeze();
+                return PathGeometry.CreateFromGeometry(geometry);
+            }
+        }
+
         public static PathGeometry CreateCombineGeometry(PolyBezierViewModel pb)
         {
             Point oneIntersection;
@@ -109,6 +153,33 @@ namespace boilersGraphics.Helpers
             }
             geometry.Freeze();
             return PathGeometry.CreateFromGeometry(geometry);
+        }
+
+        private static void DetectIntersections_Closed(PolyBezierViewModel pb, ref Point oneIntersection, ref int beginI, ref int endJ)
+        {
+            if (pb.Points.First() != pb.Points.Last())
+            {
+                pb.Points.Add(pb.Points.First());
+            }
+
+            for (int i = 0; i < pb.Points.Count - 1; i++)
+            {
+                var pt1 = pb.Points[i];
+                var pt2 = pb.Points[i + 1];
+                for (int j = 0; j < pb.Points.Count - 1; j++)
+                {
+                    if (i == j || i + 1 == j || i == j + 1 || (i == endJ && j == beginI)) continue;
+                    var pt3 = pb.Points[j];
+                    var pt4 = pb.Points[j + 1];
+                    if (Intersects(pt1, pt2, pt3, pt4, out var intersection))
+                    {
+                        oneIntersection = intersection;
+                        beginI = i;
+                        endJ = j;
+                        return;
+                    }
+                }
+            }
         }
 
         private static void DetectIntersections(PolyBezierViewModel pb, ref Point oneIntersection, ref int beginI, ref int endJ)
