@@ -1,4 +1,4 @@
-﻿var temp;
+﻿temp;
 function add(a, b) {
     return a + b;
 }
