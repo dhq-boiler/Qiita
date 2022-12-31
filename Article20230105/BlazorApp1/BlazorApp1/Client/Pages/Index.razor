@@ -15,16 +15,18 @@ Welcome to your new app.
 <SurveyPrompt Title="How is Blazor working for you?" />
 
 @code {
+    private IJSObjectReference? _jsClass;
     private double sum;
     private double difference;
     private double product;
     private double quotient;
     protected override async Task OnInitializedAsync()
     {
-        sum = await JsRuntime.InvokeAsync<double>("add", 1, 1);
-        difference = await JsRuntime.InvokeAsync<double>("subtract", 6, 2);
-        product = await JsRuntime.InvokeAsync<double>("multiply", 11.1, 3);
-        quotient = await JsRuntime.InvokeAsync<double>("divide", 33.3, 3);
+        _jsClass = await JsRuntime.InvokeAsync<IJSObjectReference>("instanciate");
+        sum = await Microsoft.JSInterop.JSObjectReferenceExtensions.InvokeAsync<double>(_jsClass, "add", 1, 1);
+        difference = await Microsoft.JSInterop.JSObjectReferenceExtensions.InvokeAsync<double>(_jsClass, "subtract", 6, 2);
+        product = await Microsoft.JSInterop.JSObjectReferenceExtensions.InvokeAsync<double>(_jsClass, "multiply", 11.1, 3);
+        quotient = await Microsoft.JSInterop.JSObjectReferenceExtensions.InvokeAsync<double>(_jsClass, "divide", 33.3, 3);
         await base.OnInitializedAsync();
     }
 }

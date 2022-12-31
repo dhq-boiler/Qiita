@@ -11,6 +11,15 @@
     <link rel="icon" type="image/png" href="favicon.png" />
     <link href="BlazorApp1.Client.styles.css" rel="stylesheet" />
     <script type="text/javascript" src="js/module.js"></script>
+    <script type="text/javascript">
+        var singletonObj;
+        function instanciate() {
+            if (singletonObj == null) {
+                singletonObj = new Module();
+            }
+            return singletonObj;
+        }
+    </script>
 </head>
 
 <body>
