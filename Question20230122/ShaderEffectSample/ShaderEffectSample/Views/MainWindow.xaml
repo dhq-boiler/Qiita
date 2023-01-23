@@ -19,6 +19,10 @@
                 <Setter Property="HorizontalAlignment" Value="Center" />
                 <Setter Property="VerticalContentAlignment" Value="Center" />
                 <Setter Property="HorizontalContentAlignment" Value="Center" />
+                <Setter Property="FontSize" Value="25" />
+            </Style>
+            <Style TargetType="Button">
+                <Setter Property="FontSize" Value="25" />
             </Style>
         </Grid.Resources>
         <Grid.ColumnDefinitions>
