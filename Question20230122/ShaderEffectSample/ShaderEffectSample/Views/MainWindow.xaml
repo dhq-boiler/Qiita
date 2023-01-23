@@ -90,7 +90,7 @@
             Grid.Row="3"
             Grid.Column="1"
             Command="{Binding BlurEffectImage}">
-            Save and Show image
+            Show image
         </Button>
         <ContentControl
             x:Name="test2"
@@ -100,7 +100,7 @@
             Grid.Row="3"
             Grid.Column="2"
             Command="{Binding MosaicEffectImage}">
-            Save and Show image
+            Show image
         </Button>
     </Grid>
 </Window>
